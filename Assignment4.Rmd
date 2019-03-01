@@ -1,0 +1,307 @@
+---
+title: "A4"
+author: "zhu,zhaoyang"
+date: "2018.11.24"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+snow = scan("buffsnow.txt")
+```
+
+## Q1
+
+#a).
+
+\(\phi_i = \theta_i - \theta_{i-1}\) for i = 2 ... n
+
+WTS: \(\theta_k = \theta_1 + \sum_{i=2}^{k}\phi_i \) for \(k \geq 2\)
+
+\(\theta_2 = \theta_1 + \theta_2 - \theta_1 = \theta_1 + \sum_{i=2}^{k=2} \phi_i  = \theta_2\)
+
+\(\theta_3 = \theta_1 + \theta_2 - \theta_1 + \theta_3 - \theta_2 = \theta_1 + \sum_{i=2}^{k=3} \phi_i  = \theta_3\)
+
+\(\theta_k = \theta_1 + \theta_2 - \theta_1 + \theta_3 - \theta_2 + .. + \theta_{k-1} - \theta_{k-2} + \theta_{k} - \theta_{k-1} = \theta_1 + \sum_{i=2}^{k} \phi_i  = \theta_k\) for \(k \geq 2\)
+
+
+#b).
+
+Want to minimize \(\sum_{i=1}^{n}(y_i - \theta_i)^2 + \lambda \sum_{i=2}^{n} |\phi_i|\) respect to \(\theta_1\) For fixed value \(\phi_2 ... \phi_n\)
+
+Since \(\theta_k = \theta_1 + \sum_{i=2}^{k}\phi_i\)
+
+\(\implies G = \sum_{i=1}^{n}(y_i - \theta_1 - \sum_{j=2}^{i}\phi_i)^2 + \lambda \sum_{i=2}^{n}|\phi_i|\) 
+
+\(\implies \frac{dG}{d\theta_1} = -2\sum_{i=1}^{n}(y_i - \theta_1 - \sum_{j=2}^{i}\phi_i) = 0\)
+
+\(\implies \sum_{i=1}^{n}(y_i - \sum_{j=2}^{i}\phi_i) - n\theta_1 = 0\)
+
+\(\implies \theta_1 = \frac{1}{n}\sum_{i=1}^{n}(y_i - \sum_{j=2}^{i}\phi_i)\) will minimize our objective function.
+
+
+#c).
+
+Want to minimize \(\sum_{i=1}^{n}(y_i - \theta_i)^2 + \lambda \sum_{i=2}^{n} |\phi_i|\) respect to \(\phi_j\)
+
+\(\implies G = \sum_{i=1}^{n}(y_i - \theta_1 - \sum_{k=2}^{i}\phi_k)^2 + \lambda \sum_{j=2}^{n}|\phi_i|\) 
+
+\(\implies \frac{dG}{d\phi_j} = -2\sum_{i=j}^{n}(y_i - \theta_1 - \sum_{k=2}^{i}\phi_k) + \lambda \partial |\phi_j|\) 
+
+\(= -2\sum_{i=j}^{n}(y_i - \theta_1) + 2\sum_{i=j}^{n} \sum_{k=2}^{i}\phi_k + \lambda \partial |\phi_i|\)
+
+Since we took \(\phi_j \) out where \(j = k \implies\) we took away \(\phi_j \) from every outer sum loop and \(j=i\), and there are \((n - j + 1)\) loops for outer sum, therefore, \(\sum_{i=j}^{n} \sum_{k=2}^{i}\phi_k = (n-j+1)\phi_j + \sum_{i=j}^{n} \sum_{k=2;j\neq k}^{i=j}\phi_k\)
+
+\(\implies -2\sum_{i=j}^{n}(y_i - \theta_1) + 2\sum_{i=j}^{n} \sum_{k=2}^{i}\phi_k + \lambda \partial |\phi_i| = -2\sum_{i=j}^{n}(y_i - \theta_1) + 2((n-j+1)\phi_j + \sum_{i=j}^{n} \sum_{k=2;j\neq k}^{i=j}\phi_k) + \lambda \partial |\phi_i|\)
+
+\(\implies  \frac{dG}{d\phi_j} = -2\sum_{i=j}^{n}(y_i - \theta_1 - \sum_{i=j}^{n} \sum_{k=2;j\neq k}^{i=j}\phi_k ) + 2(n-j+1)\phi_j + \lambda \partial |\phi_i|\)
+
+Let \(Z = \sum_{i=j}^{n}(y_i - \theta_1 - \sum_{i=j}^{n} \sum_{k=2;j\neq k}^{i=j}\phi_k )\)
+
+The sub-gradient: \(\partial |\phi_i|\) is defined as:
+
+$$
+\partial |\phi_i| = 
+\begin{cases} 
++ 1 & \phi_i > 0\\
+[-1,1] & \phi_i = 0 \\
+- 1 & \phi_i < 0
+\end{cases}
+$$
+
+Case 1: \(\phi_j = 0\)
+
+\(\implies -\lambda \leq \lambda \partial |\phi_j| \leq \lambda\) Since \(\lambda > 0\)
+
+Since we want to \(\frac{dG}{d\phi_j} = 0\)
+
+\(\implies -\lambda \leq 2Z\leq \lambda \implies \frac{-\lambda}{2} \leq  Z \leq \frac{\lambda}{2} \implies |Z| \leq \frac{\lambda}{2}\)
+
+Case 2: \(\phi_j > 0\)
+
+\(\implies \lambda \partial |\phi_j| = \lambda\)
+
+Since we want to \(\frac{dG}{d\phi_j} = 0\)
+
+\(\implies 2(n-j+1)\phi_j - 2Z = -\lambda \implies \phi_j = \frac{1}{n-j+1}(Z - \frac{\lambda}{2})\)
+
+We know that \(\phi_j > 0 \) and \(2 \geq i\neq j \leq n\) and \(\lambda > 0\)
+
+\(\implies  (n-j+1) > 0 \land \frac{\lambda}{2} > 0\)
+
+\(\implies \phi_j (n-j+1) > 0 \land Z = (n-j+1)\phi_j + \frac{\lambda}{2}\)
+
+\(\implies Z >  \frac{\lambda}{2} \)
+
+Case 3: \(phi_j < 0\)
+
+\(\implies \lambda \partial |\phi_j| = -\lambda\)
+
+Since we want to \(\frac{dG}{d\phi_j} = 0\)
+
+\(\implies 2(n-j+1)\phi_j - 2Z = \lambda \implies \phi_j = \frac{1}{n-j+1}(Z + \frac{\lambda}{2})\)
+
+We know that \(\phi_j < 0 \) and \(2 \geq i\neq j \leq n\) and \(\lambda > 0\)
+
+\(\implies  (n-j+1) > 0 \land \frac{\lambda}{2} > 0\)
+
+\(\implies \phi_j (n-j+1) < 0 \land Z = (n-j+1)\phi_j - \frac{\lambda}{2}\)
+
+\(\implies Z <  -\frac{\lambda}{2} \)
+
+
+## Q2
+
+#a).
+
+\(L(\mu_1,...,\mu_m,\sigma^2_1,...,\sigma^2_m,\lambda_1,..,\lambda_m) = \prod^n_{i=1}\prod^m_{k=1}(f_k(x_i)^{u_{ik}}\lambda_k^{u_{ik}})\)
+
+\(\implies l = log(L) = \sum_{i=1}^n\sum_{k=1}^m u_{ik}ln[f_k(x_i)] + \sum_{i=1}^n\sum_{k=1}^m u_{ik}ln[\lambda_k]\) Where \(ln[f_k(x_i)] = -\frac{(x_i - \mu_k)^2}{2\sigma^2_k} - ln(\sqrt{2\pi}\sigma_k)\)
+
+WTS: \(\hat\lambda_k = \frac{1}{n}\sum_{i=1}^{n}u_{ik}\)
+
+\(l = \sum_{i=1}^n\sum_{k=1}^m u_{ik}ln[f_k(x_i)] + \sum_{i=1}^{n}(u_{i1}ln(\lambda_1) + u_{i2}ln(\lambda_2) + ... + u_{im}ln(\lambda_m))\)
+
+We have a constraint: \(\lambda_1 + \lambda_2 + .... + \lambda_m = 1\)
+
+By Lagrange Multiplier:
+
+
+\(\implies \frac{dl}{d\lambda_1} = \sum_{i=1}^{n}u_{i1} \frac{1}{\lambda_1} = A\)
+
+\(\implies \frac{dl}{d\lambda_2} = \sum_{i=1}^{n}u_{i2} \frac{1}{\lambda_2} = A\)
+
+.
+
+.
+
+\(\implies \frac{dl}{d\lambda_k} = \sum_{i=1}^{n}u_{ik} \frac{1}{\lambda_k} = A\)
+
+.
+
+.
+
+\(\implies \frac{dl}{d\lambda_m} = \sum_{i=1}^{n}u_{im} \frac{1}{\lambda_m} = A\)
+
+\(\implies \hat\lambda_1 = \frac{\sum_{i=1}^{n}u_{i1}}{A}\)
+
+\(\implies \hat\lambda_2 = \frac{\sum_{i=2}^{n}u_{i2}}{A}\)
+
+.
+
+.
+
+\(\implies \hat\lambda_k = \frac{\sum_{i=k}^{n}u_{ik}}{A}\)
+
+.
+
+.
+
+\(\implies \hat\lambda_m = \frac{\sum_{i=1}^{n}u_{im}}{A}\)
+
+\(\implies \frac{\sum_{i=1}^{n}u_{i1}}{A} + \frac{\sum_{i=1}^{n}u_{i2}}{A} + ... + \frac{\sum_{i=1}^{n}u_{im}}{A} = 1 \)
+
+\(\implies A = \sum_{i=1}^{n} (u_{i1} + u_{i2} + ... + u_{im})\)
+
+We know that \(u_{i1} + u_{i2} + ... + u_{im} = 1\)
+
+\(\implies A = \sum_{i=1}^{n} 1 = n\)
+
+\(\implies \hat\lambda_k = \frac{1}{n}\sum_{i=1}^{n}u_{ik}\)
+
+WTS: \(\hat\sigma_k^2 = (\sum_{i=1}^{n}u_{ik})^{-1}\sum_{i=1}^{n}u_{ik}(x_i - \hat\mu_k)^2\)
+
+\(l = \sum_{i=1}^n (u_{i1}ln[f_1(x_i)] + u_{i2}ln[f_2(x_i)] + ... + u_{im}ln[f_m(x_i)]) + \sum_{i=1}^n\sum_{k=1}^m u_{ik}ln[\lambda_k]\)
+
+\(\implies \frac{dl}{d\sigma_k} = \sum_{i=1}^n u_{ik}(\frac{(x_i - \mu_k)^2}{\sigma^3_k} - \frac{1}{\sigma_k}) = 0\)
+
+\(\implies \frac{1}{\sigma_k} \sum_{i=1}^n u_{ik} = \frac{1}{\sigma_k^3}\sum_{i=1}^n u_{ik}(x_i - \mu_k)^2\)
+
+\(\implies \hat\sigma^2_k = (\sum_{i=1}^n u_{ik})^{-1}\sum_{i=1}^n u_{ik}(x_i - \hat\mu_k)^2\)
+
+WTS: \(\hat\mu_k =  (\sum_{i=1}^n u_{ik})^{-1}\sum_{i=1}^n u_{ik}x_i\)
+
+\(l = \sum_{i=1}^n (u_{i1}ln[f_1(x_i)] + u_{i2}ln[f_2(x_i)] + ... + u_{im}ln[f_m(x_i)]) + \sum_{i=1}^n\sum_{k=1}^m u_{ik}ln[\lambda_k]\)
+
+\(\implies \frac{dl}{d\mu_k} = \sum_{i=1}^n u_{ik}(\frac{x_i - \mu_k}{\sigma^2_k} ) = 0\)
+
+\(\implies \sum_{i=1}^n u_{ik}x_i = \sum_{i=1}^n u_{ik}\mu_k\)
+
+\(\implies \hat\mu_k =  (\sum_{i=1}^n u_{ik})^{-1}\sum_{i=1}^n u_{ik}x_i\)
+
+
+#b).
+
+```{r,echo=TRUE,eval=TRUE}
+normalmixture <- function(x,k,mu,sigma,lambda,em.iter=50) {
+#  This function inputs the data (x) and the number of components (k)
+# as well as initials estimates for the means (mu), std deviations (sigma),
+# and probabilities (lambda).  You should also include arguments for 
+# determining convergence although here I just have a fixed number of
+# iterations (em.iter) of the EM algorithm with a default of 50 iterations
+         n <- length(x)
+         x <- sort(x)
+         vars <- sigma^2
+         means <- mu
+         loglik = NULL
+         lam <- lambda/sum(lambda)  # guarantee that lambdas sum to 1
+         delta <- matrix(rep(0,n*k),ncol=k) 
+# In this template, we have a fixed number of EM iterations; you may want 
+# to have a more refined convergence criterion 
+         for (s in 1:em.iter) {
+           thisLoglike = 0
+# compute updates of deltas 
+             for (i in 1:n) {
+                xi <- x[i]
+                
+                for (j in 1:k) {
+                   mj <- means[j]
+                   varj <- vars[j]
+                   denom <- 0
+                   for (u in 1:k) {
+                      mu <- means[u]
+                      varu <- vars[u]
+                      denom <- denom + lam[u]*dnorm(xi,mu,sqrt(varu))
+                      }
+                   delta[i,j] <- lam[j]*dnorm(xi,mj,sqrt(varj))/denom
+                   thisLoglike = thisLoglike + delta[i,j] * 
+                     (log(dnorm(xi,mj,sqrt(varj))) + log(lam[j]))
+                   # our log L from part a for every iteration
+                }
+
+              
+                   }
+# compute updated estimates of means, variances, and probabilities - the 
+# function weighted.mean may be useful here for computing the estimates of
+# the means and variances.
+           
+# M step :
+              for (j in 1:k) {
+                  deltaj <- as.vector(delta[,j]) # uij at j
+                  lambda[j] <- sum(deltaj)/n # our lambda from part a
+                  means[j] <-  
+                    weighted.mean(x,deltaj)  
+                  # we don't need 1/sum(deltaj) because of weighted mean
+                  vars[j] <-  
+                    weighted.mean((x-means[j])^2,deltaj)
+                  # we do not need 1/sum(deltaj) because weighted mean
+              }
+           loglik = c(loglik, thisLoglike)
+             }
+# Log-likelihood computation - you may want to compute this after each EM
+# iteration (i.e. within the outer loop)
+        r <- list(mu=means,var=vars,delta=delta,lambda=lambda,loglik=loglik)
+        r
+}
+
+```
+
+
+#c).
+```{r,echo=TRUE,eval=TRUE}
+
+plot(density(snow,bw=4.25)) # m=3
+dis_1 = snow[snow < 60] # first normal distribution 
+dis_2 = snow[snow >= 60 & snow < 105] # second normal distribution
+dis_3 = snow[snow >= 105] # third normal distribution
+mean = c(mean(dis_1),mean(dis_2),mean(dis_3)) # initial estimate of mean
+sd = c(sd(dis_1),sd(dis_2),sd(dis_3)) # initial estimate of sd
+lambda = c(sum(dis_1)/length(snow),sum(dis_2)/
+             length(snow),sum(dis_3)/length(snow)) # initial estimate of lambda
+three = normalmixture(x=snow,k=3,mu=mean,sigma=sd,lambda=lambda,em.iter=300)
+x = seq(0,220,0.0001) # generate points for normal distribution from 0 to 220
+d = 0 # initial density set to 0
+for (k in 1:3){
+# generate distribution using m = 3, 
+# estimate means, estimate variances, estimate lambdas from our algorithm
+  d = d + three$lambda[k] * dnorm(x,three$mu[k],sqrt(three$var[k]))
+}
+lines(x,d,col='green')
+
+plot(density(snow,bw=5.2)) # m = 2, local min at 60
+dis_12 = snow[snow >= 60]  # second normal distribution
+mean2 = c(mean(dis_1),mean(dis_12))
+sd2 = c(sd(dis_1),sd(dis_12))
+lambda2 = c(sum(dis_1)/length(snow),sum(dis_12)/length(snow))
+two = normalmixture(x=snow,k=2,mu=mean2,sigma=sd2,lambda=lambda2,em.iter = 300)
+d = 0
+for (k in 1:2){ 
+# generate distribution using m = 2, 
+# estimate means, estimate variances, estimate lambdas from our algorithm
+  d = d + two$lambda[k] * dnorm(x,two$mu[k],sqrt(two$var[k]))
+}
+lines(x,d,col='green')
+
+```
+
+
+#d).
+
+```{r,echo=TRUE,eval=TRUE}
+two$loglik[300] # log likelihood for m = 2, at iteration 300
+three$loglik[300] # log likelihood for m =3, at iteration 300
+
+```
+
+Comparing two log likelihoods, we can see that when m = 2, our log likelihood is larger than m = 3, since we want to max our likelihood, therefore, I prefer two.
+
