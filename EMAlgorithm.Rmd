@@ -1,0 +1,123 @@
+---
+title: "A4"
+author: "zhu,zhaoyang"
+date: "2018.11.24"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+snow = scan("buffsnow.txt")
+```
+
+```{r,echo=TRUE,eval=TRUE}
+normalmixture <- function(x,k,mu,sigma,lambda,em.iter=50) {
+#  This function inputs the data (x) and the number of components (k)
+# as well as initials estimates for the means (mu), std deviations (sigma),
+# and probabilities (lambda).  You should also include arguments for 
+# determining convergence although here I just have a fixed number of
+# iterations (em.iter) of the EM algorithm with a default of 50 iterations
+         n <- length(x)
+         x <- sort(x)
+         vars <- sigma^2
+         means <- mu
+         loglik = NULL
+         lam <- lambda/sum(lambda)  # guarantee that lambdas sum to 1
+         delta <- matrix(rep(0,n*k),ncol=k) 
+# In this template, we have a fixed number of EM iterations; you may want 
+# to have a more refined convergence criterion 
+         for (s in 1:em.iter) {
+           thisLoglike = 0
+# compute updates of deltas 
+             for (i in 1:n) {
+                xi <- x[i]
+                
+                for (j in 1:k) {
+                   mj <- means[j]
+                   varj <- vars[j]
+                   denom <- 0
+                   for (u in 1:k) {
+                      mu <- means[u]
+                      varu <- vars[u]
+                      denom <- denom + lam[u]*dnorm(xi,mu,sqrt(varu))
+                      }
+                   delta[i,j] <- lam[j]*dnorm(xi,mj,sqrt(varj))/denom
+                   thisLoglike = thisLoglike + delta[i,j] * 
+                     (log(dnorm(xi,mj,sqrt(varj))) + log(lam[j]))
+                   # our log L from part a for every iteration
+                }
+
+              
+                   }
+# compute updated estimates of means, variances, and probabilities - the 
+# function weighted.mean may be useful here for computing the estimates of
+# the means and variances.
+           
+# M step :
+              for (j in 1:k) {
+                  deltaj <- as.vector(delta[,j]) # uij at j
+                  lambda[j] <- sum(deltaj)/n # our lambda from part a
+                  means[j] <-  
+                    weighted.mean(x,deltaj)  
+                  # we don't need 1/sum(deltaj) because of weighted mean
+                  vars[j] <-  
+                    weighted.mean((x-means[j])^2,deltaj)
+                  # we do not need 1/sum(deltaj) because weighted mean
+              }
+           loglik = c(loglik, thisLoglike)
+             }
+# Log-likelihood computation - you may want to compute this after each EM
+# iteration (i.e. within the outer loop)
+        r <- list(mu=means,var=vars,delta=delta,lambda=lambda,loglik=loglik)
+        r
+}
+
+```
+
+
+#c).
+```{r,echo=TRUE,eval=TRUE}
+
+plot(density(snow,bw=4.25)) # m=3
+dis_1 = snow[snow < 60] # first normal distribution 
+dis_2 = snow[snow >= 60 & snow < 105] # second normal distribution
+dis_3 = snow[snow >= 105] # third normal distribution
+mean = c(mean(dis_1),mean(dis_2),mean(dis_3)) # initial estimate of mean
+sd = c(sd(dis_1),sd(dis_2),sd(dis_3)) # initial estimate of sd
+lambda = c(sum(dis_1)/length(snow),sum(dis_2)/
+             length(snow),sum(dis_3)/length(snow)) # initial estimate of lambda
+three = normalmixture(x=snow,k=3,mu=mean,sigma=sd,lambda=lambda,em.iter=300)
+x = seq(0,220,0.0001) # generate points for normal distribution from 0 to 220
+d = 0 # initial density set to 0
+for (k in 1:3){
+# generate distribution using m = 3, 
+# estimate means, estimate variances, estimate lambdas from our algorithm
+  d = d + three$lambda[k] * dnorm(x,three$mu[k],sqrt(three$var[k]))
+}
+lines(x,d,col='green')
+
+plot(density(snow,bw=5.2)) # m = 2, local min at 60
+dis_12 = snow[snow >= 60]  # second normal distribution
+mean2 = c(mean(dis_1),mean(dis_12))
+sd2 = c(sd(dis_1),sd(dis_12))
+lambda2 = c(sum(dis_1)/length(snow),sum(dis_12)/length(snow))
+two = normalmixture(x=snow,k=2,mu=mean2,sigma=sd2,lambda=lambda2,em.iter = 300)
+d = 0
+for (k in 1:2){ 
+# generate distribution using m = 2, 
+# estimate means, estimate variances, estimate lambdas from our algorithm
+  d = d + two$lambda[k] * dnorm(x,two$mu[k],sqrt(two$var[k]))
+}
+lines(x,d,col='green')
+
+```
+
+
+#d).
+
+```{r,echo=TRUE,eval=TRUE}
+two$loglik[300] # log likelihood for m = 2, at iteration 300
+three$loglik[300] # log likelihood for m =3, at iteration 300
+
+```
+
