@@ -1,0 +1,53 @@
+---
+title: "A3"
+author: "Zhu,Zhaoyang"
+date: "November 11, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(splines)
+```
+
+```{r,echo=TRUE,eval=TRUE}
+mlegamma = function(x,eps=1.e-8,max.iter=500){
+  n = length(x)
+  alpha0 = mean(x)^2/var(x)
+  lambda0 = mean(x)/var(x)
+  scorealpha = sum(log(x)) + n*log(lambda0) - n*digamma(alpha0)
+  scorelambda = -sum(x) + (n*alpha0)/(lambda0) 
+  score = c(scorealpha,scorelambda)
+  iter = 0
+  alpha = alpha0
+  lambda = lambda0
+  theta = c(alpha0,lambda0)
+  while ((max(abs(score))>eps && iter<=max.iter)){
+    H_11 = n*trigamma(alpha) # minus H_11
+    H_12 = -n/lambda # minus H_12
+    H_21 = -n/lambda # minus H_21
+    H_22 = (n*alpha)/(lambda)^2 #minus H_22
+    H = matrix(c(H_11,H_12,H_21,H_22),ncol=2)
+    theta = theta + solve(H,score)
+    alpha = theta[1]
+    lambda = theta[2]
+    iter = iter + 1
+    # update score
+    scorealpha = sum(log(x)) + n*log(lambda) - n*digamma(alpha)
+    scorelambda = -sum(x) + (n*alpha)/(lambda) 
+    score = c(scorealpha,scorelambda)
+  }
+  H_11 =  n*trigamma(alpha)
+  H_12 = -n/lambda
+  H_21 = -n/lambda
+  H_22 = (n*alpha)/(lambda)^2
+  H = matrix(c(H_11,H_12,H_21,H_22),ncol=2)
+  r = list(alpha=alpha,lambda=lambda,H=solve(H))
+  r
+}
+mlegamma(rgamma(1000,shape = 1))
+mlegamma(rgamma(1000,shape = 0.1))
+mlegamma(rgamma(1000,shape = 5))
+mlegamma(rgamma(1000,shape = 0.5))
+
+```
